@@ -1,4 +1,4 @@
-# Edendale Performance Tester
+# API Performance Tester
 
 A professional performance testing tool for API load testing with a beautiful web interface.
 
@@ -25,7 +25,6 @@ A professional performance testing tool for API load testing with a beautiful we
 ### 1. Build the Project
 
 ```bash
-cd "/Users/nkosicele/Documents/Mathe/edendale perfomance"
 mvn clean install
 ```
 
@@ -134,7 +133,7 @@ Run a performance test on an API endpoint.
 ## 📁 Project Structure
 
 ```
-edendale perfomance/
+API Performance Tester/
 ├── pom.xml                                  # Maven configuration
 ├── src/
 │   ├── main/
@@ -165,7 +164,7 @@ edendale perfomance/
 
 ## 📝 Example Usage
 
-### Testing Your Edendale API
+### Testing Your API
 
 1. Open `http://localhost:8080` in your browser
 2. API URL is pre-filled: `https://www.ndosiautomation.co.za/EDENDALESPORTSPROJECTNPC/api/auth/login`
@@ -212,4 +211,4 @@ This project is for testing purposes.
 ---
 
 **Created**: December 2025
-**Project**: Edendale Performance Testing
+**Project**: API Performance Tester
