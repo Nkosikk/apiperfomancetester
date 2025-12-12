@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Performance Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            height: 100%;
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 1.4em;
+            margin-bottom: 2px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 0.85em;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 15px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .form-section {
+            flex: 0 0 320px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1em;
+            flex-shrink: 0;
+        }
+
+        .form-group {
+            margin-bottom: 8px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 3px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.75em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: none;
+            height: 50px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+        }
+
+        .inline-fields {
+            display: flex;
+            gap: 10px;
+        }
+
+        .inline-fields .form-group {
+            flex: 1;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .btn-stop:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .countdown-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            text-align: center;
+            color: white;
+        }
+
+        .countdown-label {
+            font-size: 0.7em;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .countdown-timer {
+            font-size: 1.8em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .countdown-progress {
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            height: 6px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .countdown-bar {
+            background: white;
+            height: 100%;
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid #667eea;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: #f0f0ff;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .preset-btn {
+            padding: 5px;
+            background: #e0e0e0;
+            border: 1px solid #667eea;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #333;
+            font-size: 0.7em;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .results-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .results-header h2 {
+            font-size: 1em;
+            margin: 0;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 0.8em;
+        }
+
+        .header-stat {
+            display: flex;
+            gap: 5px;
+        }
+
+        .header-stat-label {
+            opacity: 0.8;
+        }
+
+        .header-stat-value {
+            font-weight: bold;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            text-align: center;
+        }
+
+        .result-card.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .result-card.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .result-label {
+            color: #666;
+            font-size: 0.65em;
+            margin-bottom: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .result-value {
+            color: #333;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.9);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .loading.show {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #dc3545;
+            font-size: 0.8em;
+            flex-shrink: 0;
+        }
+
+        .chart-container {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-container h3 {
+            color: #333;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+            flex-shrink: 0;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+        }
+
+        #responseChart {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        #noResults {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        #results {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            gap: 8px;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        #results.show {
+            display: flex;
+        }
+
+        .bottom-section {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .chart-container {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-container h3 {
+            color: #333;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+            flex-shrink: 0;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+        }
+
+        #responseChart {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .log-info {
+            background: #e8f5e9;
+            border-left: 3px solid #28a745;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #2e7d32;
+            flex-shrink: 0;
+        }
+
+        .log-info a {
+            color: #1565c0;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .log-info a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 API Performance Tester</h1>
+            <p>Load Testing & API Performance Analyzer</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Input Section -->
+            <div class="form-section">
+                <h2>⚙️ Test Configuration</h2>
+
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="setPreset(10, 5, 0)">10 Req</button>
+                    <button class="preset-btn" onclick="setPreset(50, 10, 0)">50 Req</button>
+                    <button class="preset-btn" onclick="setPreset(100, 20, 0)">100 Req</button>
+                    <button class="preset-btn" onclick="setPreset(0, 10, 30)">30 Sec</button>
+                    <button class="preset-btn" onclick="setPreset(0, 20, 60)">1 Min</button>
+                    <button class="preset-btn" onclick="setPreset(0, 50, 120)">2 Min</button>
+                </div>
+
+                <form id="testForm" onsubmit="runTest(event)">
+                    <div class="form-group">
+                        <label for="apiUrl">API Endpoint URL</label>
+                        <input 
+                            type="url" 
+                            id="apiUrl" 
+                            name="apiUrl"
+                            value="https://www.ndosiautomation.co.za/EDENDALESPORTSPROJECTNPC/api/auth/login"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payloadInput">Request Payload (JSON)</label>
+                        <textarea 
+                            id="payloadInput" 
+                            name="payload"
+                            required>{"email":"admin@gmail.com","password":"@Dontforget1"}</textarea>
+                    </div>
+
+                    <!-- Test Mode Toggle -->
+                    <div class="mode-toggle">
+                        <button type="button" class="mode-btn active" id="modeRequests" onclick="setMode('requests')">By Requests</button>
+                        <button type="button" class="mode-btn" id="modeDuration" onclick="setMode('duration')">By Duration</button>
+                    </div>
+
+                    <!-- Requests Mode -->
+                    <div id="requestsMode" class="inline-fields">
+                        <div class="form-group">
+                            <label for="requestCount">Number of Requests</label>
+                            <input type="number" id="requestCount" min="1" max="10000" value="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="concurrency">Threads</label>
+                            <input type="number" id="concurrency" min="1" max="500" value="10" required>
+                        </div>
+                    </div>
+
+                    <!-- Duration Mode (hidden by default) -->
+                    <div id="durationMode" class="inline-fields" style="display: none;">
+                        <div class="form-group">
+                            <label for="duration">Duration (seconds)</label>
+                            <input type="number" id="duration" min="1" max="600" value="30">
+                        </div>
+                        <div class="form-group">
+                            <label for="concurrency2">Threads</label>
+                            <input type="number" id="concurrency2" min="1" max="500" value="10">
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary" id="runBtn">▶ Run Test</button>
+                        <button type="button" class="btn btn-stop" id="stopBtn" style="display: none;" onclick="stopTest()">⏹ Stop</button>
+                        <button type="reset" class="btn btn-secondary">🔄 Reset</button>
+                    </div>
+
+                    <!-- Countdown Timer -->
+                    <div id="countdownContainer" class="countdown-container" style="display: none;">
+                        <div class="countdown-label">Time Remaining</div>
+                        <div class="countdown-timer" id="countdownTimer">00:00</div>
+                        <div class="countdown-progress">
+                            <div class="countdown-bar" id="countdownBar"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section">
+                <div class="results-header">
+                    <h2>📊 Test Results</h2>
+                    <div class="header-stats">
+                        <div class="header-stat">
+                            <span class="header-stat-label">Status:</span>
+                            <span class="header-stat-value" id="statusValue">-</span>
+                        </div>
+                        <div class="header-stat">
+                            <span class="header-stat-label">TPS:</span>
+                            <span class="header-stat-value" id="rpsValue">-</span>
+                        </div>
+                        <div class="header-stat">
+                            <span class="header-stat-label">Duration:</span>
+                            <span class="header-stat-value" id="totalTimeValue">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="noResults">Run a test to see results here</div>
+
+                <div id="results">
+                    <div id="loading" class="loading">
+                        <div class="loader"></div>
+                        <div class="loading-text">Running performance test...</div>
+                    </div>
+                    
+                    <div class="results-grid">
+                        <div class="result-card success">
+                            <div class="result-label">✓ Success</div>
+                            <div class="result-value" id="successCount">0</div>
+                        </div>
+                        <div class="result-card error">
+                            <div class="result-label">✗ Failed</div>
+                            <div class="result-value" id="failedCount">0</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">⏱ Avg Time</div>
+                            <div class="result-value" id="avgTime">0ms</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">⬇ Min</div>
+                            <div class="result-value" id="minTime">0ms</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">⬆ Max</div>
+                            <div class="result-value" id="maxTime">0ms</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">P50</div>
+                            <div class="result-value" id="p50Time">0ms</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">P95</div>
+                            <div class="result-value" id="p95Time">0ms</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">P99</div>
+                            <div class="result-value" id="p99Time">0ms</div>
+                        </div>
+                        <div class="result-card" style="border-left-color: #ff6b35; background: #fff3e0;">
+                            <div class="result-label">🔥 TPS</div>
+                            <div class="result-value" id="tpsValue">0</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">📊 Total</div>
+                            <div class="result-value" id="totalRequests">0</div>
+                        </div>
+                    </div>
+
+                    <div id="errorDiv" class="error-message" style="display: none;">
+                        <strong>Error:</strong> <span id="errorMessage"></span>
+                    </div>
+
+                    <!-- Log File Info -->
+                    <div id="logInfo" class="log-info" style="display: none;">
+                        📁 Logs saved to: <strong><span id="logFilePath">logs/</span></strong>
+                    </div>
+
+                    <div class="bottom-section">
+                        <div class="chart-container">
+                            <h3>Response Time (ms)</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="responseChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Success vs Failed</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="successChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let responseChart = null;
+        let successChart = null;
+        let currentMode = 'requests';
+        let countdownInterval = null;
+        let abortController = null;
+        let testRunning = false;
+        let progressInterval = null;
+
+        // Poll for real-time progress
+        async function pollProgress() {
+            if (!testRunning) {
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/performance/progress');
+                const progress = await response.json();
+                
+                if (progress.running) {
+                    updateLiveStats(progress);
+                    updateLiveCharts(progress);
+                }
+            } catch (e) {
+                console.log('Progress poll error:', e);
+            }
+        }
+        
+        function updateLiveStats(progress) {
+            // Update the stats in real-time
+            document.getElementById('successCount').textContent = progress.successfulRequests || 0;
+            document.getElementById('failedCount').textContent = progress.failedRequests || 0;
+            document.getElementById('avgTime').textContent = Math.round(progress.averageResponseTime || 0) + 'ms';
+            document.getElementById('minTime').textContent = (progress.minResponseTime || 0) + 'ms';
+            document.getElementById('maxTime').textContent = (progress.maxResponseTime || 0) + 'ms';
+            document.getElementById('p50Time').textContent = (progress.p50ResponseTime || 0) + 'ms';
+            document.getElementById('p95Time').textContent = (progress.p95ResponseTime || 0) + 'ms';
+            document.getElementById('p99Time').textContent = (progress.p99ResponseTime || 0) + 'ms';
+            document.getElementById('tpsValue').textContent = (progress.requestsPerSecond || 0).toFixed(2);
+            document.getElementById('totalRequests').textContent = progress.totalRequests || 0;
+            
+            // Update header stats
+            document.getElementById('rpsValue').textContent = (progress.requestsPerSecond || 0).toFixed(1) + '/s';
+            document.getElementById('totalTimeValue').textContent = (progress.elapsedSeconds * 1000 || 0) + 'ms';
+            document.getElementById('statusValue').textContent = 'RUNNING';
+        }
+        
+        function updateLiveCharts(progress) {
+            // Update response time chart
+            if (responseChart && progress.averageResponseTime > 0) {
+                responseChart.data.datasets[0].data = [
+                    progress.minResponseTime || 0,
+                    progress.p50ResponseTime || 0,
+                    Math.round(progress.averageResponseTime) || 0,
+                    progress.p95ResponseTime || 0,
+                    progress.p99ResponseTime || 0,
+                    progress.maxResponseTime || 0
+                ];
+                responseChart.update('none');
+            }
+            
+            // Update success/fail chart
+            if (successChart) {
+                successChart.data.datasets[0].data = [
+                    progress.successfulRequests || 0,
+                    progress.failedRequests || 0
+                ];
+                
+                const total = (progress.successfulRequests || 0) + (progress.failedRequests || 0);
+                const successRate = total > 0 ? ((progress.successfulRequests / total) * 100).toFixed(1) : 0;
+                successChart.options.plugins.title.text = successRate + '% Success Rate';
+                
+                successChart.update('none');
+            }
+        }
+        
+        function startProgressPolling() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+            progressInterval = setInterval(pollProgress, 500); // Poll every 500ms
+        }
+        
+        function initializeEmptyCharts() {
+            // Reset stats to zero
+            document.getElementById('successCount').textContent = '0';
+            document.getElementById('failedCount').textContent = '0';
+            document.getElementById('avgTime').textContent = '0ms';
+            document.getElementById('minTime').textContent = '0ms';
+            document.getElementById('maxTime').textContent = '0ms';
+            document.getElementById('p50Time').textContent = '0ms';
+            document.getElementById('p95Time').textContent = '0ms';
+            document.getElementById('p99Time').textContent = '0ms';
+            document.getElementById('tpsValue').textContent = '0.00';
+            document.getElementById('totalRequests').textContent = '0';
+            document.getElementById('rpsValue').textContent = '0/s';
+            document.getElementById('totalTimeValue').textContent = '0ms';
+            document.getElementById('statusValue').textContent = 'RUNNING';
+            
+            // Response Time Chart
+            const ctx1 = document.getElementById('responseChart').getContext('2d');
+            if (responseChart) {
+                responseChart.destroy();
+            }
+            responseChart = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Min', 'P50', 'Avg', 'P95', 'P99', 'Max'],
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: ['#1abc9c', '#3498db', '#9b59b6', '#f39c12', '#e74c3c', '#e74c3c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: (v) => v + 'ms' }
+                        }
+                    }
+                }
+            });
+            
+            // Success/Failed Chart  
+            const ctx2 = document.getElementById('successChart').getContext('2d');
+            if (successChart) {
+                successChart.destroy();
+            }
+            successChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Success', 'Failed'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['#27ae60', '#e74c3c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: '0% Success Rate', color: '#27ae60', font: { size: 16 } }
+                    }
+                }
+            });
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            if (mode === 'requests') {
+                document.getElementById('requestsMode').style.display = 'flex';
+                document.getElementById('durationMode').style.display = 'none';
+                document.getElementById('modeRequests').classList.add('active');
+                document.getElementById('modeDuration').classList.remove('active');
+            } else {
+                document.getElementById('requestsMode').style.display = 'none';
+                document.getElementById('durationMode').style.display = 'flex';
+                document.getElementById('modeRequests').classList.remove('active');
+                document.getElementById('modeDuration').classList.add('active');
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function startCountdown(totalSeconds) {
+            let remaining = totalSeconds;
+            const countdownContainer = document.getElementById('countdownContainer');
+            const countdownTimer = document.getElementById('countdownTimer');
+            const countdownBar = document.getElementById('countdownBar');
+            
+            countdownContainer.style.display = 'block';
+            countdownTimer.textContent = formatTime(remaining);
+            countdownBar.style.width = '100%';
+            
+            countdownInterval = setInterval(() => {
+                remaining--;
+                if (remaining >= 0) {
+                    countdownTimer.textContent = formatTime(remaining);
+                    const percent = (remaining / totalSeconds) * 100;
+                    countdownBar.style.width = percent + '%';
+                }
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+            }, 1000);
+        }
+
+        function stopCountdown() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            document.getElementById('countdownContainer').style.display = 'none';
+        }
+
+        function stopTest() {
+            if (abortController) {
+                abortController.abort();
+            }
+            stopCountdown();
+            testRunning = false;
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('loading').classList.remove('show');
+            document.querySelector('.loading-text').textContent = 'Test stopped by user';
+        }
+
+        function setPreset(requests, threads, duration) {
+            if (duration > 0) {
+                setMode('duration');
+                document.getElementById('duration').value = duration;
+                document.getElementById('concurrency2').value = threads;
+            } else {
+                setMode('requests');
+                document.getElementById('requestCount').value = requests;
+                document.getElementById('concurrency').value = threads;
+            }
+        }
+
+        async function runTest(event) {
+            event.preventDefault();
+
+            const apiUrl = document.getElementById('apiUrl').value;
+            const payload = document.getElementById('payloadInput').value;
+            
+            let requestCount = 0;
+            let concurrency = 10;
+            let duration = 0;
+            
+            if (currentMode === 'requests') {
+                requestCount = parseInt(document.getElementById('requestCount').value) || 100;
+                concurrency = parseInt(document.getElementById('concurrency').value) || 10;
+            } else {
+                duration = parseInt(document.getElementById('duration').value) || 30;
+                concurrency = parseInt(document.getElementById('concurrency2').value) || 10;
+            }
+
+            if (!apiUrl || !payload) {
+                alert('Please fill in API URL and Payload');
+                return;
+            }
+
+            let parsedPayload;
+            try {
+                parsedPayload = JSON.parse(payload);
+            } catch (e) {
+                alert('Invalid JSON in payload: ' + e.message);
+                return;
+            }
+
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('noResults').style.display = 'none';
+            document.getElementById('runBtn').disabled = true;
+            
+            // Initialize charts with zeros for real-time updates
+            initializeEmptyCharts();
+            document.getElementById('results').classList.add('show');
+            
+            // Show stop button and countdown for duration mode
+            if (currentMode === 'duration') {
+                document.getElementById('stopBtn').style.display = 'inline-block';
+                startCountdown(duration);
+            }
+            
+            testRunning = true;
+            abortController = new AbortController();
+            
+            // Start real-time progress polling
+            startProgressPolling();
+            
+            // Update loading text based on mode
+            const loadingText = document.querySelector('.loading-text');
+            if (currentMode === 'duration') {
+                loadingText.textContent = `Running for ${duration} seconds...`;
+            } else {
+                loadingText.textContent = `Running ${requestCount} requests...`;
+            }
+
+            try {
+                const url = new URL('http://localhost:8080/api/performance/test');
+                url.searchParams.append('url', apiUrl);
+                url.searchParams.append('numberOfRequests', requestCount);
+                url.searchParams.append('concurrentThreads', concurrency);
+                url.searchParams.append('durationSeconds', duration);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(parsedPayload),
+                    signal: abortController.signal
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Test stopped by user');
+                } else {
+                    console.error('Error:', error);
+                    document.getElementById('errorDiv').style.display = 'block';
+                    document.getElementById('errorMessage').textContent = error.message;
+                    document.getElementById('results').classList.add('show');
+                }
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('runBtn').disabled = false;
+                document.getElementById('stopBtn').style.display = 'none';
+                stopCountdown();
+                testRunning = false;
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+            }
+        }
+
+        function displayResults(data) {
+            document.getElementById('successCount').textContent = data.successfulRequests || 0;
+            document.getElementById('failedCount').textContent = data.failedRequests || 0;
+            document.getElementById('avgTime').textContent = (data.averageResponseTime || 0).toFixed(0) + 'ms';
+            document.getElementById('minTime').textContent = (data.minResponseTime || 0) + 'ms';
+            document.getElementById('maxTime').textContent = (data.maxResponseTime || 0) + 'ms';
+            document.getElementById('p50Time').textContent = (data.p50ResponseTime || 0) + 'ms';
+            document.getElementById('p95Time').textContent = (data.p95ResponseTime || 0) + 'ms';
+            document.getElementById('p99Time').textContent = (data.p99ResponseTime || 0) + 'ms';
+            document.getElementById('totalRequests').textContent = data.totalRequests || 0;
+            document.getElementById('tpsValue').textContent = (data.requestsPerSecond || 0).toFixed(2);
+
+            // Update header with final results
+            document.getElementById('statusValue').textContent = data.status || 'SUCCESS';
+            document.getElementById('rpsValue').textContent = (data.requestsPerSecond || 0).toFixed(1) + '/s';
+            document.getElementById('totalTimeValue').textContent = (data.totalTime || 0) + 'ms';
+            
+            document.getElementById('statusValue').textContent = data.status || '-';
+            document.getElementById('totalTimeValue').textContent = (data.totalTime || 0) + 'ms';
+            document.getElementById('rpsValue').textContent = (data.requestsPerSecond || 0).toFixed(1) + '/s';
+
+            // Show log file info
+            if (data.logFilePath) {
+                document.getElementById('logInfo').style.display = 'block';
+                document.getElementById('logFilePath').textContent = data.logFilePath;
+            }
+
+            if (data.errorMessage) {
+                document.getElementById('errorDiv').style.display = 'block';
+                document.getElementById('errorMessage').textContent = data.errorMessage;
+            } else {
+                document.getElementById('errorDiv').style.display = 'none';
+            }
+
+            document.getElementById('results').classList.add('show');
+            document.getElementById('noResults').style.display = 'none';
+            updateCharts(data);
+        }
+
+        function updateCharts(data) {
+            // Response Time Chart
+            const ctx1 = document.getElementById('responseChart').getContext('2d');
+            
+            if (responseChart) {
+                responseChart.destroy();
+            }
+
+            responseChart = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Min', 'P50', 'Avg', 'P95', 'P99', 'Max'],
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: [
+                            data.minResponseTime || 0,
+                            data.p50ResponseTime || 0,
+                            data.averageResponseTime || 0,
+                            data.p95ResponseTime || 0,
+                            data.p99ResponseTime || 0,
+                            data.maxResponseTime || 0
+                        ],
+                        backgroundColor: ['#28a745', '#17a2b8', '#667eea', '#fd7e14', '#ffc107', '#dc3545'],
+                        borderColor: ['#28a745', '#17a2b8', '#667eea', '#fd7e14', '#ffc107', '#dc3545'],
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) { return value + 'ms'; },
+                                font: { size: 10 }
+                            }
+                        },
+                        x: {
+                            ticks: { font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+
+            // Success/Failed Doughnut Chart
+            const ctx2 = document.getElementById('successChart').getContext('2d');
+            
+            if (successChart) {
+                successChart.destroy();
+            }
+
+            const successRate = ((data.successfulRequests / data.totalRequests) * 100).toFixed(1);
+
+            successChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Success (' + data.successfulRequests + ')', 'Failed (' + data.failedRequests + ')'],
+                    datasets: [{
+                        data: [data.successfulRequests || 0, data.failedRequests || 0],
+                        backgroundColor: ['#28a745', '#dc3545'],
+                        borderColor: ['#28a745', '#dc3545'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { size: 10 } }
+                        },
+                        title: {
+                            display: true,
+                            text: successRate + '% Success Rate',
+                            font: { size: 12, weight: 'bold' },
+                            color: successRate >= 95 ? '#28a745' : successRate >= 80 ? '#ffc107' : '#dc3545'
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('testForm').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                runTest(e);
+            }
+        });
+    </script>
+</body>
+</html>
